@@ -1,0 +1,81 @@
+{
+  "info": {
+    "name": "Session 6 Advanced Integrations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "access_token", "value": "paste-google-login-access-token-here" },
+    { "key": "email", "value": "verified-test-recipient@example.com" },
+    { "key": "phone_number", "value": "+14155552671" }
+  ],
+  "item": [
+    {
+      "name": "Google Login (ID token)",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"credential\": \"paste-a-Google-ID-token-here\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{base_url}}/api/auth/google/"
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('Google login returns JWT tokens', function () {",
+          "  pm.response.to.have.status(200);",
+          "  const body = pm.response.json();",
+          "  pm.expect(body.access).to.be.a('string');",
+          "  pm.expect(body.refresh).to.be.a('string');",
+          "  pm.collectionVariables.set('access_token', body.access);",
+          "});"
+        ] }
+      }]
+    },
+    {
+      "name": "Send welcome email (Mailgun)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{base_url}}/api/send-email/"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Mailgun accepted the email', function () {",
+        "  pm.response.to.have.status(202);",
+        "  pm.expect(pm.response.json().status).to.eql('accepted');",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "Send SMS (Twilio)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"phone_number\": \"{{phone_number}}\",\n  \"message\": \"Hello from the Session 6 API demo.\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{base_url}}/api/send-sms/"
+      }
+    },
+    {
+      "name": "Simulate test payment (Stripe)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"amount\": \"10.00\",\n  \"currency\": \"usd\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{base_url}}/api/pay/"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Stripe returned a transaction identifier', function () {",
+        "  pm.response.to.have.status(201);",
+        "  const body = pm.response.json();",
+        "  pm.expect(body.transaction_id).to.be.a('string');",
+        "  pm.expect(body.payment_status).to.eql('succeeded');",
+        "});"
+      ] } }]
+    }
+  ]
+}

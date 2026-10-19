@@ -1,0 +1,18 @@
+Paste the following in the PythonAnywhere Web tab's WSGI configuration file.
+Replace YOUR_USERNAME and PROJECT_PATH with your actual PythonAnywhere values.
+
+import os
+import sys
+
+project_home = "/home/YOUR_USERNAME/session-6"
+if project_home not in sys.path:
+    sys.path.insert(0, project_home)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "foodiehub.settings")
+os.environ["DJANGO_ALLOWED_HOSTS"] = "YOUR_USERNAME.pythonanywhere.com"
+os.environ["DJANGO_DEBUG"] = "false"
+
+from foodiehub.wsgi import application
+
+Set secrets in the PythonAnywhere Web tab's environment variables (or a securely
+loaded .env outside the public static directory). Never commit .env to Git.
